@@ -1,0 +1,42 @@
+/// hk configuration for the ykgpg fish plugin.
+///
+/// Top-level `steps` feed hk's default `check`, `fix`, and `pre-commit`
+/// hooks: checks never modify files; fish formatting is auto-fixed and
+/// staged by the pre-commit hook.
+///
+/// Tools (hk, actionlint, taplo) come from mise.toml; fish and
+/// fish_indent come from the system fish. Install the hooks with:
+///   mise run hooks          (or: hk install --mise)
+
+amends "package://github.com/jdx/hk/releases/download/v2.11.1/hk@2.11.1#/Config.pkl"
+
+steps {
+  ["fish-syntax"] = new Step {
+    glob = List("**/*.fish")
+    check = "fish -n {{files}}"
+  }
+
+  ["fish-format"] = new Step {
+    glob = List("**/*.fish")
+    check = "fish_indent --check {{files}}"
+    fix = "fish_indent --write {{files}}"
+  }
+
+  ["actionlint"] = new Step {
+    glob = List(".github/workflows/*.yml")
+    check = "actionlint {{files}}"
+  }
+
+  ["toml-format"] = new Step {
+    glob = List("*.toml")
+    check = "taplo format --check {{files}}"
+    fix = "taplo format {{files}}"
+  }
+
+  // Repo-wide checks that are not per-file: fixture tests and the
+  // autoload-leak regression test live in mise tasks so they can also be
+  // run directly (`mise run test`, `mise run leak`).
+  // ["mise-test"] = new Step {
+  //   check = "mise run test"
+  // }
+}

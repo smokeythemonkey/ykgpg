@@ -1,0 +1,64 @@
+# CI for the ykgpg fish plugin: syntax check, pure-logic tests, and the
+# autoload leak regression test, on every supported fish version and both
+# platforms. Hardware steps (card, generate, renew) are NOT covered here.
+#
+# NOTE: adjust the fish PPAs to whatever currently serves 3.7.x and 4.x —
+# fish-shell publishes one PPA per major release (release-3, release-4, ...).
+
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            fish_source: ppa:fish-shell/release-3   # fish 3.7.x — oldest supported
+          - os: ubuntu-latest
+            fish_source: ppa:fish-shell/release-4   # fish 4.x
+          - os: macos-latest
+            fish_source: ""                          # brew install fish
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install fish
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            brew install fish
+          else
+            sudo apt-add-repository -y "${{ matrix.fish_source }}"
+            sudo apt-get update
+            sudo apt-get install -y fish
+          fi
+          fish --version
+
+      - name: Syntax check
+        run: |
+          fish -n functions/ykgpg.fish
+          fish -n completions/ykgpg.fish
+          fish -n tests/test.fish
+
+      - name: Unit tests (fixtures only, no gpg, no hardware)
+        run: fish tests/test.fish
+
+      - name: Autoload leak regression test
+        run: |
+          # Sourcing the plugin in an interactive fish must register NO
+          # signal/event handlers and define NO plugin globals — this is the
+          # regression test for the Ctrl-C-kills-the-shell bug (v1.0.0).
+          fish -i -c '
+              source functions/ykgpg.fish
+              if functions --handlers | grep -q ykgpg
+                  echo "LEAK: event handlers registered in interactive shell"; exit 1
+              end
+              if set | grep -qE "^(YKGPG_|_daily_home)"
+                  echo "LEAK: globals defined in interactive shell"; exit 1
+              end
+              echo "clean"
+          '
