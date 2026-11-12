@@ -3,10 +3,10 @@
 Guided YubiKey OpenPGP setup for fish: an offline certify-only primary key,
 [S]/[E]/[A] subkeys on several YubiKeys, a CI-only signing subkey, and renewal.
 
-> **Status: pre-release.** `functions/ykgpg.fish` is the unmodified v1.0.0
-> personal script. The refactor that turns it into a proper plugin is fully
-> specified in [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) — work through
-> the phases in order. Do not `fisher install` until Phase 7.
+> **Status: pre-release — Go rewrite in progress.** The original fish
+> script is retired to `legacy/ykgpg.fish` as the behavior-parity
+> reference; the Go implementation (two client libraries plus the CLI)
+> is scaffolded in this repo.
 
 ## Install (after the refactor)
 
@@ -38,43 +38,35 @@ and card stubs. See the security notes in the implementation plan.
 
 ## Requirements
 
-- fish 3.6+ (uses `fish --no-config`, `path`)
-- GnuPG 2.2+ (2.4 recommended), ykman 5.x
-- Linux (pcscd) or macOS (built-in PC/SC framework)
+- GnuPG 2.2+ (2.4 recommended); PC/SC (pcscd on Linux, built-in on macOS)
+- No shell requirement: a single Go binary, any shell
 
 ## Configuration
 
 Environment variables — all optional: `YKGPG_BACKUP`, `YKGPG_ALGO`,
-`YKGPG_EXPIRE`, `YKGPG_REGISTRY_KEY`, `YKGPG_STATE_DIR`, `YKGPG_PINENTRY`.
-Personal overrides belong in `~/.config/fish/conf.d/ykgpg.fish` (use `set -gx`).
-
-## Docs
-
-- [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) — the refactor, phase by phase
-- [docs/GPG-SIGNING-KEY.md](docs/GPG-SIGNING-KEY.md) — the original design notes / manual walkthrough
+`YKGPG_EXPIRE`, `YKGPG_REGISTRY_KEY`, `YKGPG_STATE_DIR`, `YKGPG_PINENTRY`,
+plus per-profile overrides (`YKGPG_EXPIRE_<NAME>`…).
 
 ## Development
 
-Tooling is managed with [mise](https://mise.jdx.dev/) (installs `hk`,
-`actionlint`, `taplo`; fish itself comes from the system) and git hooks with
-[hk](https://hk.jdx.dev/) (`hk.pkl`). Fish's dev toolchain is thin: there is
-no shellcheck for fish — the lint stack is `fish -n` (syntax),
-`fish_indent --check` (formatting), fixture-based tests, and `actionlint`
-for the workflow file.
+Tooling is managed with [mise](https://mise.jdx.dev/) and git hooks with
+[hk](https://hk.jdx.dev/) (`hk.pkl`): formatting, golangci-lint, go vet,
+actionlint, zizmor, taplo — and a security gate (gitleaks on staged
+content, a key-material path guard, private-key detection) on every
+commit, plus tests and a full-history secret scan on every push. See
+[SECURITY.md](SECURITY.md) for what counts as key material and how it is
+enforced.
 
 ```sh
-mise install           # once: hk, actionlint, taplo
-mise run hooks         # once: installs the pre-commit hook (mise-aware)
+mise install           # once: Go, linters, gitleaks, hk
+mise run hooks         # once: installs the pre-commit/pre-push hooks (mise-aware)
 
-mise run fmt           # fish_indent --write (also auto-run by pre-commit)
-mise run lint          # fish -n + fish_indent --check + actionlint + taplo
-mise run test          # fixture-based unit tests
-mise run leak          # interactive-shell leak regression test
+mise run fmt           # gofmt + goimports
+mise run lint          # golangci-lint + go vet + actionlint + zizmor
+mise run test          # unit tests (no hardware, no cgo)
+mise run leaks         # full-history secret scan
 mise run check         # all of the above (CI parity)
 ```
-
-The pre-commit hook (`hk check`) auto-formats staged `.fish` files, stages
-the fix, then runs syntax/format/actionlint/taplo checks and the unit tests.
 
 ## License
 

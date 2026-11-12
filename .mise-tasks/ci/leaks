@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Scan the full git history and the working tree for secrets"
+set -euo pipefail
+
+gitleaks detect --redact
+gitleaks dir . --redact --no-banner

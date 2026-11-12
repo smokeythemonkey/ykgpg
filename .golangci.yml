@@ -1,0 +1,66 @@
+version: "2"
+run:
+  tests: true
+output:
+  formats:
+    text:
+      path: stderr
+linters:
+  enable:
+    - err113
+    - gocognit
+    - gocritic
+    - godot
+    - gosec
+    - misspell
+    - nestif
+    - nilerr
+    - unconvert
+    - unparam
+    - whitespace
+  settings:
+    gocognit:
+      min-complexity: 20
+    gocritic:
+      enabled-checks:
+        - commentedOutCode
+        - emptyDecl
+        - commentedOutImport
+        - initClause
+        - nestingReduce
+    godot:
+      capital: true
+      period: true
+    gosec:
+      excludes:
+        - G101
+    nestif:
+      min-complexity: 7
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - openpgpcard/internal/cardkit$
+      - legacy$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+  exclusions:
+    generated: lax
+    paths:
+      - openpgpcard/internal/cardkit$
+      - legacy$

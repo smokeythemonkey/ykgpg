@@ -1,0 +1,29 @@
+#:schema https://raw.githubusercontent.com/gitleaks/gitleaks/v8.30.1/config/gitleaks.json
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "ykgpg-key-material-file"
+description = "Key material files must never be committed"
+path = '''(?i)(^|/)(private-keys-v1\.d/|\.gnupg/|pubring\.kbx|trustdb\.gpg|revoke\.asc|secret\.asc|\.tar\.gpg|\.rev|\.state)$|(^|/)(private-keys-v1\.d/|\.gnupg/)'''
+regex = '''(?s)\A.+'''
+
+[[rules]]
+id = "ykgpg-shadowed-private-key"
+description = "GnuPG shadowed private key stub (smart card secret reference)"
+regex = '''\(shadowed-private-key'''
+
+[[rules]]
+id = "ykgpg-secret-key-sexp"
+description = "GnuPG canonical secret key s-expression"
+regex = '''\(private-key\s+\((rsa|ecdh|ecc|dsa|ed25519|cv25519)'''
+
+[[allowlists]]
+description = "Public key listings and docs are not secret"
+paths = [
+    '''legacy/ykgpg\.fish''',
+    '''docs/GPG-SIGNING-KEY\.md''',
+    '''gnupg/testdata/.*\.colons''',
+    '''\.crush/.*''',
+]

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#MISE description="Build the ykgpg binary (cgo-free default build)"
+#MISE sources=["**/*.go", "go.mod", "go.sum"]
+set -euo pipefail
+
+CGO_ENABLED=0 go build -v ./...
+go build -o /dev/null ./cmd/ykgpg

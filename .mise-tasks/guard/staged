@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Refuse staged files that look like key material"
+set -euo pipefail
+
+exec "$(git rev-parse --show-toplevel)/scripts/git-guard.sh"

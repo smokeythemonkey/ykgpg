@@ -1,0 +1,10 @@
+node_modules/
+vendor/
+.venv/
+dist/
+.task/
+coverage*
+*.out
+*.log
+.terraform/
+*.tfstate*

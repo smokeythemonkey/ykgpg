@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Build release artifacts locally without publishing or signing"
+set -euo pipefail
+
+goreleaser release --snapshot --clean --skip=sign

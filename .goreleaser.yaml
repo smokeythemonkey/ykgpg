@@ -1,0 +1,29 @@
+version: 2
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: ykgpg
+    env:
+      # The default release build is cgo-free. PC/SC card support (the
+      # only cgo consumer) is built separately against libpcsclite.
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    binary: ykgpg
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  algorithm: sha256
+changelog:
+  disable: true

@@ -1,5 +1,37 @@
+# Build output
+/ykgpg
+/dist/
+*.test
+*.exe
+
+# Editor and OS noise
 .DS_Store
 *.log
 *.orig
 *.rej
-docs/*
+.idea/
+
+# Crush local state
+.crush/
+
+# Local docs (design notes, working plans) — never committed
+docs/
+
+# Anything that could be key material, even by accident. These patterns
+# are a safety net; the real gate is gitleaks + scripts/git-guard.sh in
+# the pre-commit hook, which also cover the repo's own history.
+*.gpg
+*.tar.gpg
+*.key
+*.rev
+*.state
+*.kbx
+secret.asc
+revoke.asc
+public.asc
+ownertrust.txt
+private-keys-v1.d/
+pubring.kbx
+trustdb.gpg
+.ssh/id_yubikey*
+backups/
